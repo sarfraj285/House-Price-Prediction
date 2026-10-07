@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartHouseAI - House Price Prediction</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="nav-container">
+        <a href="/" class="brand">
+            <span class="brand-icon">⌂</span>
+            <span>Smart<span>HouseAI</span></span>
+        </a>
+
+        <nav>
+            <a href="/" class="active">Home</a>
+            <a href="#predict">Predict</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+        </nav>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1>House Price<br><span>Prediction</span></h1>
+            <p>
+                Enter the details of the house and our machine
+                learning model will predict its estimated price.
+            </p>
+
+            <div class="accuracy-card">
+                <div class="accuracy-icon">⌂</div>
+                <div>
+                    <strong>Accurate Predictions</strong>
+                    <small>Powered by Machine Learning</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-image">
+            <img src="{{ url_for('static', filename='images/house.png') }}"
+                 alt="Modern house">
+        </div>
+    </div>
+</section>
+
+<main class="main-section" id="predict">
+
+    <div class="prediction-grid">
+
+        <!-- FORM CARD -->
+        <section class="card form-card">
+            <div class="card-heading">
+                <div class="heading-icon">⌂</div>
+                <h2>Enter House Details</h2>
+            </div>
+
+            {% if error %}
+                <div class="error-message">{{ error }}</div>
+            {% endif %}
+
+            <form action="/predict" method="POST">
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label>Area (in sq ft)</label>
+                        <div class="input-wrapper">
+                            <span>⌁</span>
+                            <input type="number" name="area"
+                                   placeholder="e.g. 1200"
+                                   value="{{ submitted.area if submitted else '' }}"
+                                   min="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Bedrooms</label>
+                        <div class="input-wrapper">
+                            <span>▣</span>
+                            <input type="number" name="bedrooms"
+                                   placeholder="e.g. 3"
+                                   value="{{ submitted.bedrooms if submitted else '' }}"
+                                   min="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Bathrooms</label>
+                        <div class="input-wrapper">
+                            <span>▱</span>
+                            <input type="number" name="bathrooms"
+                                   placeholder="e.g. 2"
+                                   value="{{ submitted.bathrooms if submitted else '' }}"
+                                   min="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Location</label>
+                        <div class="input-wrapper">
+                            <span>⌖</span>
+                            <select name="location" required>
+                                <option value="" disabled {% if not submitted %}selected{% endif %}>
+                                    Select location
+                                </option>
+                                {% for city in ["Delhi", "Noida", "Ghaziabad", "Lucknow", "Kanpur", "Other"] %}
+                                <option value="{{ city }}"
+                                    {% if submitted and submitted.location == city %}selected{% endif %}>
+                                    {{ city }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <span class="arrow">⌄</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Stories</label>
+                        <div class="input-wrapper">
+                            <span>▦</span>
+                            <input type="number" name="stories"
+                                   placeholder="e.g. 2"
+                                   value="{{ submitted.stories if submitted else '' }}"
+                                   min="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Parking</label>
+                        <div class="input-wrapper">
+                            <span>▣</span>
+                            <input type="number" name="parking"
+                                   placeholder="e.g. 1"
+                                   value="{{ submitted.parking if submitted else '' }}"
+                                   min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group full">
+                        <label>Property Type</label>
+                        <div class="input-wrapper">
+                            <span>⌂</span>
+                            <select name="property_type" required>
+                                <option value="" disabled {% if not submitted %}selected{% endif %}>
+                                    Select property type
+                                </option>
+                                {% for ptype in ["Apartment", "Independent House", "Villa", "Builder Floor"] %}
+                                <option value="{{ ptype }}"
+                                    {% if submitted and submitted.property_type == ptype %}selected{% endif %}>
+                                    {{ ptype }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <span class="arrow">⌄</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <button class="predict-btn" type="submit">
+                    <span>⌁</span> Predict Price
+                </button>
+            </form>
+        </section>
+
+
+        <!-- RESULT CARD -->
+        <section class="card result-card">
+            <div class="card-heading">
+                <div class="heading-icon">▥</div>
+                <h2>Prediction Result</h2>
+            </div>
+
+            {% if prediction is not none %}
+                <div class="result-box">
+                    <div class="house-circle">⌂</div>
+
+                    <p class="estimated">Estimated Price</p>
+
+                    <div class="price">
+                        ₹ {{ "{:,.0f}".format(prediction) }}
+                    </div>
+
+                    <p class="price-text">
+                        Estimated property value
+                    </p>
+
+                    <div class="divider"></div>
+
+                    <div class="confidence-row">
+                        <span>Confidence Score</span>
+                        <strong>{{ confidence }}%</strong>
+                    </div>
+
+                    <div class="progress">
+                        <div style="width: {{ confidence }}%;"></div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <span class="info-icon">i</span>
+                    <p>
+                        This is a predicted price based on the supplied
+                        house details and the machine learning model.
+                        Actual market price may vary.
+                    </p>
+                </div>
+            {% else %}
+                <div class="empty-result">
+                    <div class="empty-icon">₹</div>
+                    <h3>Your prediction will appear here</h3>
+                    <p>
+                        Enter the house details on the left and click
+                        <b>Predict Price</b>.
+                    </p>
+                </div>
+            {% endif %}
+        </section>
+
+    </div>
+
+    <section class="about-section" id="about">
+        <h2>About SmartHouseAI</h2>
+        <p>
+            SmartHouseAI is a mini machine learning project that predicts
+            an estimated house price using property features such as area,
+            bedrooms, bathrooms, location and other details.
+        </p>
+    </section>
+
+</main>
+
+<footer id="contact">
+    © 2026 SmartHouseAI | Built with ❤️ using Flask & Machine Learning
+</footer>
+
+</body>
+</html>
